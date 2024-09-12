@@ -27,7 +27,9 @@
     })
         .then((res) => res.json())
         .then((data) => data.general.classBlobUrl)
-        .then((url) => loadMapData(url))
+        .then((url) => loadMapData(url));
+
+    console.log(window['ll'])
 
 })()
 
@@ -50,16 +52,41 @@ async function loadMapData(url) {
 
     const tilesData = mapData.tileData.mapTileInfo.mapTiles;
 
-    const images = await Promise.all(tilesData.map(({ url }) => {
-        // load all images
-        return new Promise((resolve) => {
-            const img = new Image();
-            //
-            img.onload = () => resolve(img);
-            img.crossOrigin="anonymous";
-            img.src = url;
-        });
-    }));
+    const isProxyRequired = !tilesData[0].url.startsWith('https://livelox.blob.core.windows.net/');
+
+    let images = [];
+
+    if (isProxyRequired) {
+
+        const proxied = await Promise.all(tilesData.map(({ url }) => {
+            ////
+                    /// local: http://localhost:3000/api/proxy
+                    /// deployed: https://next-lyart-rho.vercel.app/api/proxy
+            ////
+            return fetch('https://next-lyart-rho.vercel.app/api/proxy', { method: 'POST', body: JSON.stringify({ url })}).then(res => res.blob());
+        }));
+
+        images = await Promise.all(proxied.map((data) => {
+            // load all images from our proxy
+            return new Promise((resolve) => {
+                const img = new Image();
+                //
+                img.onload = () => resolve(img);
+                img.src = URL.createObjectURL(data);
+            });
+        }));
+
+    } else {
+        const images = await Promise.all(tilesData.map(({ url }) => {
+            // load all images directly from hosting
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.crossOrigin="anonymous";
+                img.src = url;
+            });
+        }));
+    }
 
     const canvas = document.createElement('canvas');
     canvas.width = mapData.map.width;
