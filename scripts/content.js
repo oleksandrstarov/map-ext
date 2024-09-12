@@ -27,21 +27,37 @@
     })
         .then((res) => res.json())
         .then((data) => data.general.classBlobUrl)
-        .then((url) => loadMapData(url));
-
-    console.log(window['ll'])
+        .then((url) => url ? fetch(url): loadClassBlob([classId]))
+        .then(res => res.json())
+        .then(mapData => loadMapData(mapData));
 
 })()
 
+async function loadClassBlob(classIds) {
+    return fetch('https://www.livelox.com/Data/ClassBlob', {
+        method: 'POST',
+        body: JSON.stringify(
+            {
+                eventId: null,
+                classIds: classIds,
+                courseIds: null,
+                relayLegs: [],
+                relayLegGroupIds: [],
+                routeReductionProperties: { distanceTolerance: 1, speedTolerance: 0.1 },
+                includeMap: true,
+                includeCourses: true,
+                skipStoreInCache: false
+            }),
+        headers: {
+            'content-type': 'application/json',
+            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'x-requested-with': 'XMLHttpRequest'
+        }
+    })
+}
 
-async function loadMapData(url) {
-    if(!url) {
-        console.error('No map data url returned!');
-        return;
-    }
-
-    const mapData = await fetch(url).then(res => res.json());
-
+async function loadMapData(mapData) {
+    console.log(mapData);
     if(!mapData) {
         console.error('No map data found!');
         return;
@@ -55,7 +71,7 @@ async function loadMapData(url) {
     const isProxyRequired = !tilesData[0].url.startsWith('https://livelox.blob.core.windows.net/');
 
     let images = [];
-
+//https://www.livelox.com/Viewer/OLGY-Rally-OL/Rally-OL?classId=837892&tab=player
     if (isProxyRequired) {
 
         const proxied = await Promise.all(tilesData.map(({ url }) => {
@@ -77,7 +93,7 @@ async function loadMapData(url) {
         }));
 
     } else {
-        const images = await Promise.all(tilesData.map(({ url }) => {
+        images = await Promise.all(tilesData.map(({ url }) => {
             // load all images directly from hosting
             return new Promise((resolve) => {
                 const img = new Image();
