@@ -1,0 +1,16 @@
+{
+  "name": "Livelox extension",
+  "version": "1.0",
+  "manifest_version": 3,
+  "description": "Livelox extension to load map",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "sw.js"
+  },
+  "permissions": [
+    "webRequest", "scripting"
+  ],
+  "host_permissions": ["https://www.livelox.com/Viewer/*"]
+}
