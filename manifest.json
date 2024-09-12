@@ -1,6 +1,6 @@
 {
   "name": "Livelox extension",
-  "version": "1.2",
+  "version": "1.3",
   "manifest_version": 3,
   "description": "Livelox extension to load map",
   "action": {

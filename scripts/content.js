@@ -113,11 +113,24 @@ async function loadMapData(mapData) {
 
     images.forEach((image, index) => {
         ctx.drawImage(image, tilesData[index].x, tilesData[index].y);
-    })
+    });
 
-    const w = window.open('about:blank');
+    downloadFileOnClient(canvas.toDataURL('image/png'), mapData.map.name ?? 'live_lox_map' );
+
+    /*const w = window.open('about:blank');
     const image = new Image();
     image.src = canvas.toDataURL('image/png');
 
-    w.document.querySelector('body').appendChild(image);
+    w.document.querySelector('body').appendChild(image);*/
+}
+
+function downloadFileOnClient(url, name) {
+    const link = window.document.createElement('a');
+    link.download = name;
+    link.href = url;
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    link.remove();
 }
